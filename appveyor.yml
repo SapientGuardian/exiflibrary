@@ -22,12 +22,10 @@ artifacts:
   name: nugetPackages
 
 deploy:
-- provider: GitHub
-  auth_token:
-    secure: lpPk0unmEnneamw7kQNZlak6wkZ2t3pkb8hLUHoD6RJRXQrVS4ezYhdukOsBP5Uf
-  artifact: nugetPackages,droppackage
-- provider: NuGet
   api_key:
-    secure: 91LNePoPjTAPW0I/JzLal3NC8AhqNIVXHisALasV/lktddHKvo+/IJRx+mwZa3FL
+    secure: 7nX5a7V6wWbtPSJ6bQSU9BRZwJEdn70w0Ydlf5fuk44Gjk9BVgxnYK6u8MNzT2yA
   skip_symbols: true
   artifact: /.*\.nupkg/
+  on:
+    branch: master
+    appveyor_repo_tag: true

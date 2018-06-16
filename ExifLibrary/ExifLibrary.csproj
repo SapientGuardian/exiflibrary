@@ -1,22 +1,22 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard1.3</TargetFramework>
-	<AssemblyName>ExifLibrary</AssemblyName>
-    <PackageId>ExifLibNet</PackageId>
+	<AssemblyName>SapientGuardian.ExifLibrary</AssemblyName>
+    <PackageId>SapientGuardian.ExifLibNet</PackageId>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <Version>1.0.0.0</Version>
-	<Title>ExifLibNet</Title>
-	<Authors>oozcitak;Devedse</Authors>
+	<Title>SapientGuardian.ExifLibNet</Title>
+	<Authors>sapientguardian;oozcitak;Devedse</Authors>
 	<Description>Exif metadata modification library.</Description>
-	<PackageProjectUrl>https://github.com/oozcitak/exiflibrary</PackageProjectUrl>
+	<PackageProjectUrl>https://github.com/SapientGuardian/exiflibrary</PackageProjectUrl>
 	<PackageTags>exif;jpeg;image</PackageTags>
 	<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-	<PackageIconUrl>https://github.com/oozcitak/exiflibrary/raw/master/ExifLibrary/exiflibrary_64.png</PackageIconUrl>
-	<RepositoryUrl>https://github.com/oozcitak/exiflibrary</RepositoryUrl>
-	<PackageLicenseUrl>https://raw.githubusercontent.com/oozcitak/exiflibrary/master/LICENSE</PackageLicenseUrl>
+	<PackageIconUrl>https://github.com/SapientGuardian/exiflibrary/raw/master/ExifLibrary/exiflibrary_64.png</PackageIconUrl>
+	<RepositoryUrl>https://github.com/SapientGuardian/exiflibrary</RepositoryUrl>
+	<PackageLicenseUrl>https://raw.githubusercontent.com/SapientGuardian/exiflibrary/master/LICENSE</PackageLicenseUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

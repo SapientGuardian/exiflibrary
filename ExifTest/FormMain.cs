@@ -40,7 +40,7 @@ namespace ExifTest
         }
 
         private void UpdateView()
-        {
+        {            
             btnEmbed.Enabled = (data != null) && (data.Format != ImageFileFormat.Unknown);
             btnSave.Enabled = (data != null) && (data.Format != ImageFileFormat.Unknown);
             lvExif.Items.Clear();
@@ -55,10 +55,33 @@ namespace ExifTest
             if (data.Thumbnail == null)
                 pbThumb.Image = null;
             else
-                pbThumb.Image = data.Thumbnail.ToImage();
+            {
+                try
+                {
+                    pbThumb.Image = ImageFile.FromStream(new MemoryStream(data.Thumbnail)).ToImage();
+                }
+                catch (Exception)
+                {
+                    // Bummer
+                    pbThumb.Image = null;
+                }
+                
+            }
             pbOrigin.Image = data.ToImage();
 
-            lblThumbnail.Text = "Thumbnail: " + (data.Thumbnail == null ? "None" : data.Thumbnail.ToImage().Width.ToString() + "x" + data.Thumbnail.ToImage().Height.ToString());
+            if (data.Thumbnail == null)
+            {
+                lblThumbnail.Text = "Thumbnail: None";
+            }
+            else if (pbThumb.Image == null)
+            {
+                lblThumbnail.Text = "Thumbnail: Unreadable";
+            }
+            else
+            {
+                lblThumbnail.Text = "Thumbnail: " +  pbThumb.Image.Width.ToString() + "x" + pbThumb.Image.Height.ToString();
+            }
+            
             pgExif.SelectedObject = data;
 
             lvExif.Sort();
@@ -159,7 +182,7 @@ namespace ExifTest
         {
             if (fdOpen.ShowDialog() == DialogResult.OK)
             {
-                data.Thumbnail = ImageFile.FromFile(fdOpen.FileName);
+                data.Thumbnail = System.IO.File.ReadAllBytes(fdOpen.FileName);
                 UpdateView();
             }
         }
