@@ -664,6 +664,9 @@ namespace ExifLibrary
             {
                 if (indexf != -1)
                     Properties.RemoveAt(indexf);
+
+                if (indexl > indexf) indexl--;
+
                 if (indexl != -1)
                     Properties.RemoveAt(indexl);
             }
