@@ -161,6 +161,7 @@ namespace ExifLibrary
             return BitConverter.ToDouble(data, 0);
         }
 
+
         /// <summary>
         /// Converts the given 16-bit unsigned integer to an array of bytes.
         /// </summary>
