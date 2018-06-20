@@ -692,19 +692,19 @@ namespace ExifLibrary
                 switch (prop.IFD)
                 {
                     case IFD.Zeroth:
-                        ifdzeroth.Add(prop.Tag, prop);
+                        ifdzeroth[prop.Tag] = prop;
                         break;
                     case IFD.EXIF:
-                        ifdexif.Add(prop.Tag, prop);
+                        ifdexif[prop.Tag] = prop;
                         break;
                     case IFD.GPS:
-                        ifdgps.Add(prop.Tag, prop);
+                        ifdgps[prop.Tag] = prop;
                         break;
                     case IFD.Interop:
-                        ifdinterop.Add(prop.Tag, prop);
+                        ifdinterop[prop.Tag] = prop;
                         break;
                     case IFD.First:
-                        ifdfirst.Add(prop.Tag, prop);
+                        ifdfirst[prop.Tag] = prop;
                         break;
                 }
             }
