@@ -655,18 +655,26 @@ namespace ExifLibrary
                 {
                     // Invalid
                 }
-                
+
                 // Read thumbnail
-                if (thumboffset != -1 && thumblength != 0 && Thumbnail == null)
+                try
                 {
-                    if (thumbtype == 0)
+                    if (thumboffset != -1 && thumblength != 0 && Thumbnail == null)
                     {
-                        // Ensure that the thumbnail length does not exceed header length
-                        thumblength = Math.Min(thumblength, header.Length - tiffoffset - thumboffset);
-                        Thumbnail = new byte[thumblength];
-                        Array.Copy(header, tiffoffset + thumboffset, Thumbnail, 0, thumblength);
+                        if (thumbtype == 0)
+                        {
+                            // Ensure that the thumbnail length does not exceed header length
+                            thumblength = Math.Min(thumblength, header.Length - tiffoffset - thumboffset);
+                            Thumbnail = new byte[thumblength];
+                            Array.Copy(header, tiffoffset + thumboffset, Thumbnail, 0, thumblength);
+                        }
                     }
                 }
+                catch (Exception)
+                {
+                    // Invalid
+                }
+               
             }
         }
 
