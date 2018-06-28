@@ -10,6 +10,9 @@ namespace ExifLibrary
     /// </summary>
     public class JPEGFile : ImageFile
     {
+        const ushort MAX_FIELDS = 100;
+        const ushort MAX_ERRORS = 10;
+
         #region Member Variables
         private JPEGSection jfifApp0;
         private JPEGSection jfxxApp0;
@@ -38,7 +41,7 @@ namespace ExifLibrary
 
         #region Constructor
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExifFile"/> class.
+        /// Initializes a new instance of the <see cref="JPEGFile"/> class.
         /// </summary>
         /// <param name="stream">A <see cref="Sytem.IO.Stream"/> that contains image data.</param>
         /// <param name="encoding">The encoding to be used for text metadata when the source encoding is unknown.</param>
@@ -517,102 +520,115 @@ namespace ExifLibrary
             // Read IFDs
             while (ifdqueue.Count != 0)
             {
+                int errors = 0;
+
                 int ifdoffset = tiffoffset + ifdqueue.Keys[0];
                 IFD currentifd = ifdqueue.Values[0];
                 ifdqueue.RemoveAt(0);
 
                 // Field count
                 ushort fieldcount = conv.ToUInt16(header, ifdoffset);
-                for (short i = 0; i < fieldcount; i++)
+                fieldcount = Math.Min(fieldcount, MAX_FIELDS);
+                for (short i = 0; i < fieldcount && errors < MAX_ERRORS; i++)
                 {
-                    // Read field info
-                    int fieldoffset = ifdoffset + 2 + 12 * i;
-                    ushort tag = conv.ToUInt16(header, fieldoffset);
-                    ushort type = conv.ToUInt16(header, fieldoffset + 2);
-                    uint count = conv.ToUInt32(header, fieldoffset + 4);
-                    byte[] value = new byte[4];
-                    Array.Copy(header, fieldoffset + 8, value, 0, 4);
+                    try
+                    {
 
-                    // Fields containing offsets to other IFDs
-                    if (currentifd == IFD.Zeroth && tag == 0x8769)
-                    {
-                        int exififdpointer = (int)conv.ToUInt32(value, 0);
-                        ifdqueue.Add(exififdpointer, IFD.EXIF);
-                    }
-                    else if (currentifd == IFD.Zeroth && tag == 0x8825)
-                    {
-                        int gpsifdpointer = (int)conv.ToUInt32(value, 0);
-                        ifdqueue.Add(gpsifdpointer, IFD.GPS);
-                    }
-                    else if (currentifd == IFD.EXIF && tag == 0xa005)
-                    {
-                        int interopifdpointer = (int)conv.ToUInt32(value, 0);
-                        ifdqueue.Add(interopifdpointer, IFD.Interop);
-                    }
 
-                    // Save the offset to maker note data
-                    if (currentifd == IFD.EXIF && tag == 37500)
-                        makerNoteOffset = conv.ToUInt32(value, 0);
+                        // Read field info
+                        int fieldoffset = ifdoffset + 2 + 12 * i;
+                        ushort tag = conv.ToUInt16(header, fieldoffset);
+                        ushort type = conv.ToUInt16(header, fieldoffset + 2);
+                        uint count = conv.ToUInt32(header, fieldoffset + 4);
+                        byte[] value = new byte[4];
+                        Array.Copy(header, fieldoffset + 8, value, 0, 4);
 
-                    // Calculate the bytes we need to read
-                    uint baselength = 0;
-                    if (type == 1 || type == 2 || type == 7)
-                        baselength = 1;
-                    else if (type == 3)
-                        baselength = 2;
-                    else if (type == 4 || type == 9)
-                        baselength = 4;
-                    else if (type == 5 || type == 10)
-                        baselength = 8;
-                    else // Unknown or invalid type
-                        continue; // Skip and keep going
-                    uint totallength = count * baselength;
-
-                    // If field value does not fit in 4 bytes
-                    // the value field is an offset to the actual
-                    // field value
-                    int fieldposition = 0;
-                    if (totallength > 4)
-                    {
-                        fieldposition = tiffoffset + (int)conv.ToUInt32(value, 0);
-                        value = new byte[totallength];
-                        Array.Copy(header, fieldposition, value, 0, (int)totallength);
-                    }
-
-                    // Compressed thumbnail data
-                    if (currentifd == IFD.First && tag == 0x201)
-                    {
-                        thumbtype = 0;
-                        thumboffset = (int)conv.ToUInt32(value, 0);
-                    }
-                    else if (currentifd == IFD.First && tag == 0x202)
-                        thumblength = (int)conv.ToUInt32(value, 0);
-
-                    // Uncompressed thumbnail data
-                    if (currentifd == IFD.First && tag == 0x111)
-                    {
-                        thumbtype = 1;
-                        // Offset to first strip
-                        if (type == 3)
-                            thumboffset = (int)conv.ToUInt16(value, 0);
-                        else
-                            thumboffset = (int)conv.ToUInt32(value, 0);
-                    }
-                    else if (currentifd == IFD.First && tag == 0x117)
-                    {
-                        thumblength = 0;
-                        for (int j = 0; j < count; j++)
+                        // Fields containing offsets to other IFDs
+                        if (currentifd == IFD.Zeroth && tag == 0x8769)
                         {
-                            if (type == 3)
-                                thumblength += (int)conv.ToUInt16(value, 0);
-                            else
-                                thumblength += (int)conv.ToUInt32(value, 0);
+                            int exififdpointer = (int)conv.ToUInt32(value, 0);
+                            ifdqueue.Add(exififdpointer, IFD.EXIF);
                         }
-                    }
+                        else if (currentifd == IFD.Zeroth && tag == 0x8825)
+                        {
+                            int gpsifdpointer = (int)conv.ToUInt32(value, 0);
+                            ifdqueue.Add(gpsifdpointer, IFD.GPS);
+                        }
+                        else if (currentifd == IFD.EXIF && tag == 0xa005)
+                        {
+                            int interopifdpointer = (int)conv.ToUInt32(value, 0);
+                            ifdqueue.Add(interopifdpointer, IFD.Interop);
+                        }
 
-                    // Create the exif property from the interop data
-                    ExifProperty prop = ExifPropertyFactory.Get(tag, type, count, value, ByteOrder, currentifd, Encoding);
-                    Properties.Add(prop);
+                        // Save the offset to maker note data
+                        if (currentifd == IFD.EXIF && tag == 37500)
+                            makerNoteOffset = conv.ToUInt32(value, 0);
+
+                        // Calculate the bytes we need to read
+                        uint baselength = 0;
+                        if (type == 1 || type == 2 || type == 7)
+                            baselength = 1;
+                        else if (type == 3)
+                            baselength = 2;
+                        else if (type == 4 || type == 9)
+                            baselength = 4;
+                        else if (type == 5 || type == 10)
+                            baselength = 8;
+                        else // Unknown or invalid type
+                            continue; // Skip and keep going
+                        uint totallength = count * baselength;
+
+                        // If field value does not fit in 4 bytes
+                        // the value field is an offset to the actual
+                        // field value
+                        int fieldposition = 0;
+                        if (totallength > 4)
+                        {
+                            fieldposition = tiffoffset + (int)conv.ToUInt32(value, 0);
+                            value = new byte[totallength];
+                            Array.Copy(header, fieldposition, value, 0, (int)totallength);
+                        }
+
+                        // Compressed thumbnail data
+                        if (currentifd == IFD.First && tag == 0x201)
+                        {
+                            thumbtype = 0;
+                            thumboffset = (int)conv.ToUInt32(value, 0);
+                        }
+                        else if (currentifd == IFD.First && tag == 0x202)
+                            thumblength = (int)conv.ToUInt32(value, 0);
+
+                        // Uncompressed thumbnail data
+                        if (currentifd == IFD.First && tag == 0x111)
+                        {
+                            thumbtype = 1;
+                            // Offset to first strip
+                            if (type == 3)
+                                thumboffset = (int)conv.ToUInt16(value, 0);
+                            else
+                                thumboffset = (int)conv.ToUInt32(value, 0);
+                        }
+                        else if (currentifd == IFD.First && tag == 0x117)
+                        {
+                            thumblength = 0;
+                            for (int j = 0; j < count; j++)
+                            {
+                                if (type == 3)
+                                    thumblength += (int)conv.ToUInt16(value, 0);
+                                else
+                                    thumblength += (int)conv.ToUInt32(value, 0);
+                            }
+                        }
+
+                        // Create the exif property from the interop data
+                        ExifProperty prop = ExifPropertyFactory.Get(tag, type, count, value, ByteOrder, currentifd, Encoding);
+                        Properties.Add(prop);
+                    }
+                    catch (Exception)
+                    {
+                        // Invalid field
+                        errors++;
+                    }
                 }
 
                 // 1st IFD pointer
@@ -631,7 +647,7 @@ namespace ExifLibrary
                         // Ensure that the thumbnail length does not exceed header length
                         thumblength = Math.Min(thumblength, header.Length - tiffoffset - thumboffset);
                         Thumbnail = new byte[thumblength];
-                        Array.Copy(header, tiffoffset + thumboffset, Thumbnail, 0, thumblength);                        
+                        Array.Copy(header, tiffoffset + thumboffset, Thumbnail, 0, thumblength);
                     }
                 }
             }
@@ -924,7 +940,7 @@ namespace ExifLibrary
             if (ifdtype == IFD.First)
             {
                 if (Thumbnail != null)
-                {                    
+                {
                     thumbOffsetValue = (uint)(stream.Position - tiffoffset);
                     thumbSizeValue = (uint)Thumbnail.Length;
                     stream.Write(Thumbnail, 0, Thumbnail.Length);
