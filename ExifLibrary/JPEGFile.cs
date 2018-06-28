@@ -527,7 +527,16 @@ namespace ExifLibrary
                 ifdqueue.RemoveAt(0);
 
                 // Field count
-                ushort fieldcount = conv.ToUInt16(header, ifdoffset);
+                ushort fieldcount = 0;
+                try
+                {
+                    fieldcount = conv.ToUInt16(header, ifdoffset);
+                }
+                catch (Exception)
+                {
+                    // Invalid metadata
+                }
+                
                 fieldcount = Math.Min(fieldcount, MAX_FIELDS);
                 for (short i = 0; i < fieldcount && errors < MAX_ERRORS; i++)
                 {
