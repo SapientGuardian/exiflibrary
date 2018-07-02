@@ -12,6 +12,8 @@ namespace ExifLibrary
     {
         const ushort MAX_FIELDS = 100;
         const ushort MAX_ERRORS = 10;
+        const ushort MAX_PROPERTIES = 300;
+        const ushort MAX_IFD_LOOPS = 10;
 
         #region Member Variables
         private JPEGSection jfifApp0;
@@ -518,8 +520,10 @@ namespace ExifLibrary
             int thumblength = 0;
             int thumbtype = -1;
             // Read IFDs
-            while (ifdqueue.Count != 0)
+            var ifdLoops = 0;
+            while (ifdqueue.Count != 0 && ifdLoops < MAX_IFD_LOOPS)
             {
+                ifdLoops++;
                 int errors = 0;
 
                 int ifdoffset = tiffoffset + ifdqueue.Keys[0];
@@ -538,7 +542,10 @@ namespace ExifLibrary
                 }
                 
                 fieldcount = Math.Min(fieldcount, MAX_FIELDS);
-                for (short i = 0; i < fieldcount && errors < MAX_ERRORS; i++)
+                for (short i = 0; i < fieldcount 
+                    && errors < MAX_ERRORS
+                    && Properties.Count < MAX_PROPERTIES
+                    ; i++)
                 {
                     try
                     {
